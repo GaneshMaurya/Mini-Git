@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        hashObject(commands);
     }
     else if (commands[0] == "cat-file") {
         if (argc != 4) {

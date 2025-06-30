@@ -1,3 +1,3 @@
 make:
-	g++ main.cpp init.cpp -o mygit
+	g++ -o mygit main.cpp init.cpp hash-object.cpp utils.cpp -lssl -lcrypto -lz
 	clear
