@@ -7,10 +7,11 @@ namespace fs = filesystem;
 
 void hashObject(vector<string> commands) {
     if (commands.size() == 3 && commands[1] != "-w") {
-        cout << "Enter valid command and arguments\n";
+        cout << "error: unknown switch '" << commands[1] << "'\n";
         return;
     }
 
+    
     if (commands[1] == "-w") {
         string file_path = commands[2];
         string file_sha = getFileSha(file_path);
@@ -23,7 +24,7 @@ void hashObject(vector<string> commands) {
         
         ifstream file(file_path, ios::binary);
         if (!file.is_open()) {
-            cout << "Error opening the file\n";
+            cout << "fatal: could not open '" << file_path << "' for reading: No such file or directory\n";
             return;
         }
 
@@ -31,14 +32,16 @@ void hashObject(vector<string> commands) {
         size_t file_size = file.tellg();
         file.seekg(0, ios::beg);
 
-        string header = "blob " + to_string(file_size) + "\0";
+        string header = "blob " + to_string(file_size) + "$";
         file.close();
 
         string binary_file_path = (string)blob_folder + "/" + sha_suffix;
         compress(file_path, binary_file_path, header);
+        cout << file_sha << "\n";
     }
     else {
         string file_path = commands[1];
-        cout << getFileSha(file_path) << "\n";
+        string file_sha = getFileSha(file_path);
+        cout << file_sha << "\n";
     }
 }

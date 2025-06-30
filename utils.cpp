@@ -9,10 +9,10 @@ namespace fs = filesystem;
 
 int BUFFER_SIZE = 8*1024;
 
-string getFileSha(string path) {
-    ifstream file(path, ios::binary);
+string getFileSha(string file_path) {
+    ifstream file(file_path, ios::binary);
     if (!file.is_open()) {
-        return "Error in opening the file\n";
+        return "fatal: could not open '" + file_path + "' for reading: No such file or directory\n";
     }
 
     file.seekg(0, ios::end);
@@ -131,4 +131,77 @@ void compress(string input, string output, string metadata)
     deflateEnd(&zs);
     ipFile.close();
     opFile.close();
+}
+
+vector<string> decompress(string file_path) {
+    ifstream ipFile(file_path, ios::binary);
+    if (!ipFile.is_open()) {
+        cout << "Error opening compressed file.\n";
+        return {};
+    }
+
+    z_stream zs;
+    zs.zalloc = Z_NULL;
+    zs.zfree = Z_NULL;
+    zs.opaque = Z_NULL;
+    zs.avail_in = 0;
+    zs.next_in = Z_NULL;
+
+    if (inflateInit(&zs) != Z_OK) {
+        cout << "Error initializing decompression\n";
+        return {};
+    }
+
+    char inBuffer[BUFFER_SIZE];
+    char outBuffer[BUFFER_SIZE];
+    string decompressed;
+    int ret;
+
+    do {
+        ipFile.read(inBuffer, sizeof(inBuffer));
+        zs.avail_in = ipFile.gcount();
+        if (zs.avail_in == 0) break;
+        zs.next_in = reinterpret_cast<Bytef *>(inBuffer);
+
+        do {
+            zs.avail_out = sizeof(outBuffer);
+            zs.next_out = reinterpret_cast<Bytef *>(outBuffer);
+
+            ret = inflate(&zs, Z_NO_FLUSH);
+            if (ret == Z_STREAM_ERROR || ret == Z_DATA_ERROR || ret == Z_MEM_ERROR) {
+                cout << "Error during decompression\n";
+                inflateEnd(&zs);
+                return {};
+            }
+
+            int have = sizeof(outBuffer) - zs.avail_out;
+            decompressed.append(outBuffer, have);
+        } while (zs.avail_out == 0);
+
+    } while (ret != Z_STREAM_END);
+
+    inflateEnd(&zs);
+    ipFile.close();
+
+    // Parse header: "type size$"
+    size_t header_end = decompressed.find('$');
+    if (header_end == string::npos) {
+        cout << "Invalid decompressed data: no header found\n";
+        return {};
+    }
+
+    string header = decompressed.substr(0, header_end);
+    string content = decompressed.substr(header_end + 1);
+
+    // Split header into type and size
+    size_t space_pos = header.find(' ');
+    if (space_pos == string::npos) {
+        cout << "Invalid header format\n";
+        return {};
+    }
+
+    string type = header.substr(0, space_pos);
+    string size = header.substr(space_pos + 1);
+
+    return {type, size, content};
 }

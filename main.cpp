@@ -11,14 +11,14 @@ int main(int argc, char* argv[]) {
 
     if (commands[0] == "init") {
         if (argc != 2) {
-            cout << "Enter valid command and arguments\n";
+            cout << "useage: mygit init\n";
             return 1;
         }
         init();
     }
     else if (commands[0] == "hash-object") {
         if (argc != 3 && argc != 4) {
-            cout << "Enter valid command and arguments\n";
+            cout << "usage: mygit hash-object [-w] <file-name>\n";
             return 1;
         }
 
@@ -26,10 +26,11 @@ int main(int argc, char* argv[]) {
     }
     else if (commands[0] == "cat-file") {
         if (argc != 4) {
-            cout << "Enter valid command and arguments\n";
+            cout << "usage: mygit cat-file <flag> <file-sha>\n";
             return 1;
         }
 
+        catFile(commands);
     }
     else if (commands[0] == "write-tree") {
         if (argc != 2) {
