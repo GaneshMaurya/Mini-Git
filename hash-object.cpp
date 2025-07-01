@@ -10,7 +10,6 @@ void hashObject(vector<string> commands) {
         cout << "error: unknown switch '" << commands[1] << "'\n";
         return;
     }
-
     
     if (commands[1] == "-w") {
         string file_path = commands[2];

@@ -48,6 +48,33 @@ string getFileSha(string file_path) {
     return ss.str();
 }
 
+string getStringSha(string content, string header) {
+    unsigned char hash[SHA_DIGEST_LENGTH];
+    SHA_CTX sha_context;
+    SHA1_Init(&sha_context);
+
+    SHA1_Update(&sha_context, header.c_str(), header.size());
+
+    char buffer[BUFFER_SIZE];
+    size_t total_size = content.size();
+    size_t offset = 0;
+    while (offset < total_size) {
+        size_t bytes_to_process = min((size_t)BUFFER_SIZE, total_size - offset);
+        SHA1_Update(&sha_context, content.data() + offset, bytes_to_process);
+        offset += bytes_to_process;
+    }
+
+    SHA1_Final(hash, &sha_context);
+
+    stringstream ss;
+    for (int i = 0; i < SHA_DIGEST_LENGTH; i++)
+    {
+        ss << hex << setw(2) << setfill('0') << (int)hash[i];
+    }
+
+    return ss.str();
+}
+
 void compress(string input, string output, string metadata)
 {
     ifstream ipFile(input, ios::binary);
@@ -130,6 +157,82 @@ void compress(string input, string output, string metadata)
 
     deflateEnd(&zs);
     ipFile.close();
+    opFile.close();
+}
+
+void compressTree(string content, string output_path, string header) {
+    ofstream opFile(output_path, ios::binary | ios::trunc);
+    if (!opFile.is_open()) {
+        cout << "Error opening output file.\n";
+        return;
+    }
+
+    z_stream zs;
+    zs.zalloc = Z_NULL;
+    zs.zfree = Z_NULL;
+    zs.opaque = Z_NULL;
+
+    if (deflateInit(&zs, Z_DEFAULT_COMPRESSION) != Z_OK) {
+        cout << "Error in initialization of compression\n";
+        return;
+    }
+
+    char outputBuffer[BUFFER_SIZE];
+
+    // Compress header first
+    zs.avail_in = static_cast<uInt>(header.size());
+    zs.next_in = reinterpret_cast<Bytef *>(const_cast<char *>(header.c_str()));
+
+    do {
+        zs.avail_out = sizeof(outputBuffer);
+        zs.next_out = reinterpret_cast<Bytef *>(outputBuffer);
+        deflate(&zs, Z_NO_FLUSH);
+        int bytesToWrite = sizeof(outputBuffer) - zs.avail_out;
+        opFile.write(outputBuffer, bytesToWrite);
+    } while (zs.avail_out == 0);
+
+    // Compress content string
+    size_t total_size = content.size();
+    size_t offset = 0;
+    while (offset < total_size) {
+        size_t bytes_to_process = min((size_t)BUFFER_SIZE, total_size - offset);
+        zs.avail_in = static_cast<uInt>(bytes_to_process);
+        zs.next_in = reinterpret_cast<Bytef *>(const_cast<char *>(content.data() + offset));
+        offset += bytes_to_process;
+
+        do {
+            zs.avail_out = sizeof(outputBuffer);
+            zs.next_out = reinterpret_cast<Bytef *>(outputBuffer);
+
+            if (deflate(&zs, Z_NO_FLUSH) == Z_STREAM_ERROR) {
+                cout << "Error during compression\n";
+                deflateEnd(&zs);
+                return;
+            }
+
+            int bytesToWrite = sizeof(outputBuffer) - zs.avail_out;
+            opFile.write(outputBuffer, bytesToWrite);
+        } while (zs.avail_out == 0);
+    }
+
+    // Finish compression
+    int deflate_ret;
+    do {
+        zs.avail_out = sizeof(outputBuffer);
+        zs.next_out = reinterpret_cast<Bytef *>(outputBuffer);
+
+        deflate_ret = deflate(&zs, Z_FINISH);
+        if (deflate_ret == Z_STREAM_ERROR) {
+            cout << "Error during finishing compression\n";
+            deflateEnd(&zs);
+            return;
+        }
+
+        int bytesToWrite = sizeof(outputBuffer) - zs.avail_out;
+        opFile.write(outputBuffer, bytesToWrite);
+    } while (zs.avail_out == 0);
+
+    deflateEnd(&zs);
     opFile.close();
 }
 

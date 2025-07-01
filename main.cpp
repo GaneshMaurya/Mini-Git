@@ -34,17 +34,19 @@ int main(int argc, char* argv[]) {
     }
     else if (commands[0] == "write-tree") {
         if (argc != 2) {
-            cout << "Enter valid command and arguments\n";
+            cout << "usage: mygit write-tree\n";
             return 1;
         }
 
+        writeTree();
     }
     else if (commands[0] == "ls-tree") {
         if (argc != 3 && argc != 4) {
-            cout << "Enter valid command and arguments\n";
+            cout << "usage: mygit ls-tree [--name-only] <file-sha>\n";
             return 1;
         }
 
+        lsTree(commands);
     }
     else if (commands[0] == "add") {
 
@@ -71,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     }
     else {
-        cout << "Enter valid command and arguments\n";
+        cout << "git: '" << commands[0] << "' is not a git command.\n";
         return 1;
     }
 
