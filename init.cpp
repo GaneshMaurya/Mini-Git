@@ -32,6 +32,15 @@ void init() {
         ofstream(index_file) << "";
     }
 
+    // Create main file only if it doesn't exist
+    fs::path main_file = git_folder / "refs" / "heads" / "main";
+    if (!fs::exists(main_file)) {
+        ofstream(main_file) << "";
+    }
+    else {
+        ofstream(main_file) << "";
+    }
+
     if (is_fresh) {
         cout << "Initialized empty Git structure in .mygit/\n";
     } else {

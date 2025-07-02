@@ -13,9 +13,11 @@ void lsTree(vector<string> commands);
 
 void add(vector<string> commands);
 
+void commit(vector<string> commands);
+
 string getFileSha(string path);
 
-string getStringSha(string path, string header);
+string getStringSha(string content, string header);
 
 void compress(string input, string output, string metadata);
 
