@@ -8,30 +8,33 @@ namespace fs = filesystem;
 void init() {
     // create .mygit folder
     fs::path git_folder = ".mygit";
-    if (fs::create_directory(git_folder)) {
-        // create HEAD file
-        ofstream(git_folder / "HEAD") << "refs: refs/heads/main\n";
-        
-        // create objects folder
-        fs::create_directory(git_folder / "objects");
-        
-        // create refs folder
-        fs::create_directory(git_folder / "refs");
-        fs::create_directory(git_folder / "refs" / "heads");
-        
-        cout << "Initialized empty Git structure in .mygit/\n";
+    bool is_fresh = fs::create_directory(git_folder);
+
+    // Always ensure these subfolders exist
+    fs::create_directories(git_folder / "objects");
+    fs::create_directories(git_folder / "refs" / "heads");
+
+    // Create HEAD file only if it doesn't exist
+    fs::path head_file = git_folder / "HEAD";
+    if (!fs::exists(head_file)) {
+        ofstream(head_file) << "refs: refs/heads/main\n";
     }
     else {
-        // create HEAD file
-        ofstream(git_folder / "HEAD") << "refs: refs/heads/main\n";
-        
-        // create objects folder
-        fs::create_directory(git_folder / "objects");
-        
-        // create refs folder
-        fs::create_directory(git_folder / "refs");
-        fs::create_directory(git_folder / "refs" / "heads");
-        
+        ofstream(head_file) << "refs: refs/heads/main\n";
+    }
+
+    // Create index file only if it doesn't exist
+    fs::path index_file = git_folder / "index";
+    if (!fs::exists(index_file)) {
+        ofstream(index_file) << "";
+    }
+    else {
+        ofstream(index_file) << "";
+    }
+
+    if (is_fresh) {
+        cout << "Initialized empty Git structure in .mygit/\n";
+    } else {
         cout << "Reinitialized existing Git repository in .mygit/\n";
     }
 }

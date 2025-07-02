@@ -11,6 +11,8 @@ void writeTree();
 
 void lsTree(vector<string> commands);
 
+void add(vector<string> commands);
+
 string getFileSha(string path);
 
 string getStringSha(string path, string header);

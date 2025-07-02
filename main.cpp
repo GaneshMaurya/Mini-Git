@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         lsTree(commands);
     }
     else if (commands[0] == "add") {
-
+        add(commands);
     }
     else if (commands[0] == "commit") {
         if (argc != 2 && argc != 4) {

@@ -5,12 +5,12 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-string recursiveWriteTree(fs::path current_path) {
+string recursiveWriteTree(fs::path root_path, fs::path current_path) {
     string tree_content = "";
 
     for (auto& entry: fs::directory_iterator(current_path)) {
         string path = entry.path();
-        fs::path rel_path = fs::relative(path, current_path);
+        fs::path rel_path = fs::relative(path, root_path);
         
         string entry_name = entry.path().filename().string();
         if (!entry_name.empty() && entry_name[0] == '.') {
@@ -22,14 +22,16 @@ string recursiveWriteTree(fs::path current_path) {
         string mode;
         if (entry.is_directory()) {
             mode = "040000";
-        } else if ((perms & fs::perms::owner_exec) != fs::perms::none) {
+        } 
+        else if ((perms & fs::perms::owner_exec) != fs::perms::none) {
             mode = "100755";
-        } else {
+        } 
+        else {
             mode = "100644";
         }
 
         if (entry.is_directory()) {
-            string sub_tree_content = recursiveWriteTree(path);
+            string sub_tree_content = recursiveWriteTree(root_path, path);
             string header = "tree " + to_string(sub_tree_content.size()) + "$";
             
             string sub_tree_sha = getStringSha(sub_tree_content, header);
@@ -57,7 +59,7 @@ string recursiveWriteTree(fs::path current_path) {
 void writeTree() {
     fs::path current_path = fs::current_path();
 
-    string tree_content = recursiveWriteTree(current_path);
+    string tree_content = recursiveWriteTree(current_path, current_path);
     string header = "tree " + to_string(tree_content.size()) + "$";
 
     string tree_sha = getStringSha(tree_content, header);
