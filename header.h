@@ -15,6 +15,8 @@ void add(vector<string> commands);
 
 void commit(vector<string> commands);
 
+void log();
+
 string getFileSha(string path);
 
 string getStringSha(string content, string header);

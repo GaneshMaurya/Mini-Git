@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        log();
     }
     else if (commands[0] == "checkout") {
         if (argc != 3) {
