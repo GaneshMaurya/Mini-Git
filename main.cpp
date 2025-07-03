@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
+        checkout(commands);
     }
     else {
         cout << "git: '" << commands[0] << "' is not a git command.\n";
